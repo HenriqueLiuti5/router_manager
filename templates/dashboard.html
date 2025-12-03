@@ -1,11 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Gerenciador de Roteadores</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/style-dashboard.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <h1>lo kk</h1>
+    <div class="container">
+        
+        <div class="top-bar">
+            <div class="brand">
+                <h1>Painel de Gerenciamento</h1>
+                <p>Sistema de Controle de Roteadores</p>
+            </div>
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="btn-logout">Sair ➔</button>
+            </form>
+        </div>
+
+        <div class="table-card">
+            <div class="card-header">
+                <div class="header-content">
+                    <h2>Roteadores Cadastrados</h2>
+                    <span>Gerencie todos os roteadores da rede</span>
+            </div>
+            <button class="btn-add" onclick="openModal()">
+                <i class="fa-solid fa-plus"></i> Novo Roteador
+            </button>
+        </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Modelo</th>
+                        <th>Serial</th>
+                        <th>Acesso Remoto</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for router in routers %}
+                    <tr>
+                        <td>{{router.id}}</td>
+                        <td>{{ router.model }}</td>
+                        <td>{{ router.serial }}</td>
+                        <td><a href="{{router.link}}" target="_blank" class="action-link">Acessar</a></td>
+                        <td>
+                            <div class="action-group">
+        
+                                <a href="#" class="btn-icon btn-edit" title="Editar">
+                                            <i class="fa-solid fa-pen"></i>
+                                </a>
+        
+                                <a href="#" class="btn-icon btn-delete" title="Excluir">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td style="text-align:center; padding: 20px;">Nenhum roteador registrado</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="routerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Adicionar Novo Roteador</h2>
+            <p style="color: #666; margin-bottom: 20px; font-size: 0.9rem;">Preencha os dados abaixo para registrar um equipamento.</p>
+            
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                    openModal();
+                    });
+                </script>
+                    {% for message in messages %}
+                        <p style="color: #d63031; padding: 5px; margin-bottom: 1rem; font-size: 0.9rem;">
+                            {{message}}
+                        </p>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+            <form action="{{ url_for('add_router') }}" method="POST">
+                <div class="form-group">
+                    <label for="model">Modelo</label>
+                    <input type="text" id="model" name="model" placeholder="Ex: RUT200" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="serial">Número de Série</label>
+                    <input type="text" id="serial" name="serial" placeholder="Ex: 1107001749" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="link">Link de Acesso</label>
+                    <input type="url" id="link" name="link" placeholder="EX: ntc.veronline.center:8787" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn-confirm">Salvar Roteador</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const modal = document.getElementById("routerModal");
+
+        function openModal() {
+            modal.style.display = "block";
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html>

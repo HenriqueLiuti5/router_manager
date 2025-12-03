@@ -31,7 +31,7 @@ class Router(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     model = db.Column(db.String(100), nullable=False)
     serial = db.Column(db.String(100), nullable=False, unique=True)
-    link = db.Column(db.String(100), nullable=False, unique=True)
+    link = db.Column(db.String(100), nullable=False)
 
 
 @login_manager.user_loader
@@ -65,7 +65,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return jsonify ({"message": "Deslogado com sucesso!"})
+    return redirect(url_for('pagina_login'))
 
 @app.route('/register', methods = ['GET', 'POST'])
 def register():
@@ -102,7 +102,26 @@ def register():
 @app.route('/dashboard', methods = ['GET'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    routers = Router.query.all()
+    return render_template('dashboard.html', routers=routers)
+
+@app.route('/add_router', methods = ['GET', 'POST'])
+@login_required
+def add_router():
+    model = request.form.get('model')
+    serial = request.form.get('serial')
+    link = request.form.get('link')
+
+    router = Router.query.filter_by(serial=serial).first()
+    if router:
+        flash('Roteador já cadastrado.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if model and serial and link:
+        router = Router(model=model, serial=serial, link=link)
+        db.session.add(router)
+        db.session.commit()
+        return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=True)
