@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='assets/VERONLINE-simbolo-colorido-arrendodado.png') }}" alt="VerOnline Logo" style="max-width: 75px; margin-bottom: 3px;">
+            <br>
+        <h1>REGISTRE-SE</h1>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p style="color: #d63031; padding: 5px; margin-bottom: 1rem; font-size: 0.9rem;">
+                            {{message}}
+                        </p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div id="msg-erro"></div>
+        <form action="{{ url_for('register') }}" method="POST">
+        <input type="text" id = "username" name="username" placeholder="Nome de usuário">
+        <input type="text" id = "email" name="email" placeholder="E-mail">
+        <div class="password-container">
+            <input type="password" id = "password" name="password" placeholder="Senha">
+            <input type="password" id = "confirm-password" name="confirm-password" placeholder="Confirmar senha">
+        </div>
+
+        <button type="submit">Registrar</button>
+        </form>
+
+        <div class="form-link">
+            <p>Já possui uma conta? <a href="{{ url_for('login')}}">Faça login aqui!</a></p>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    document.querySelector('form').addEventListener('submit', function(event) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const errorDiv = document.getElementById('msg-erro');
+
+        errorDiv.innerHTML = '';
+
+        if (password !== confirmPassword) {
+            event.preventDefault();
+            const p = document.createElement('p');
+            p.textContent = "As senhas não coincidem!";
+            p.style.color = "#d63031";
+            p.style.padding = "5px";
+            p.style.marginBottom = "1rem";
+            p.style.fontSize = "0.9rem";
+
+            errorDiv.appendChild(p);
+        }
+    });
+</script>

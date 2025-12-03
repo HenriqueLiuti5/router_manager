@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,21 +34,32 @@ class Router(db.Model):
     link = db.Column(db.String(100), nullable=False, unique=True)
 
 
-#Autenticação
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route('/login', methods = ['POST'])
-def login():
-    data = request.json
-    user = User.query.filter_by(email=data.get("email")).first()
+@app.route('/', methods=['GET'])
+def pagina_login():
+    return render_template('login.html')
 
-    if user and check_password_hash(user.password, data.get("password")):
-        login_user(user)
-        return jsonify ({"message": "Logado com sucesso!"})
+#Autenticação
+@app.route('/login', methods = ['GET', 'POST'])
+def login():
     
-    return jsonify ({"messagge": "Credenciais invalidas."}), 401
+    if request.method == 'GET':
+        return render_template('login.html')
+
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and check_password_hash(user.password, password):
+        login_user(user)
+        return redirect(url_for('dashboard'))
+    
+    flash('Email ou senha incorretos.', 'error')
+    return redirect(url_for('pagina_login'))
 
 @app.route('/logout', methods = ['POST'])
 @login_required
@@ -55,19 +67,42 @@ def logout():
     logout_user()
     return jsonify ({"message": "Deslogado com sucesso!"})
 
-@app.route('/register', methods = ['POST'])
+@app.route('/register', methods = ['GET', 'POST'])
 def register():
-    data = request.json
-    user = User.query.filter_by(email=data.get("email")).first()
-    if user:
-        return jsonify ({"message": "Essa conta já existe!"}), 409
+    if request.method == 'GET':
+        return render_template('register.html')
 
-    if 'username' in data and 'email' in data and 'password' in data:
-        user = User(username=data["username"], email=data["email"], password=generate_password_hash(data["password"]))
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    if len(password) < 4:
+        flash('A senha deve ter pelo menos 4 caracteres.', 'error')
+        return redirect(url_for('register'))
+    
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        flash('Endereço de email inválido.', 'error')
+        return redirect(url_for('register'))
+
+    user = User.query.filter_by(email=email).first()
+    if user:
+        flash('Email já cadastrado.', 'error')
+        return redirect(url_for('register'))
+
+    if username and email and password:
+        user = User(username=username, email=email, password=generate_password_hash(password))
         db.session.add(user)
         db.session.commit()
-        return jsonify ({"message": "Conta criada com sucesso!"})
+        flash('Conta criada com sucesso! Você já pode efetuar o Login.', 'success')
+        return redirect(url_for('pagina_login'))
+    
+    flash('Por favor, preencha todos os campos.', 'error')
+    return redirect(url_for('register'))
 
+@app.route('/dashboard', methods = ['GET'])
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
