@@ -27,13 +27,13 @@
                 <div class="header-content">
                     <h2>Roteadores Cadastrados</h2>
                     <span>Gerencie todos os roteadores da rede</span>
+                </div>
+                {% if current_user.is_admin %}
+                <button class="btn-add" onclick="openModal()">
+                    <i class="fa-solid fa-plus"></i> Novo Roteador
+                </button>
+                {% endif %}
             </div>
-            {% if current_user.is_admin %}
-            <button class="btn-add" onclick="openModal()">
-                <i class="fa-solid fa-plus"></i> Novo Roteador
-            </button>
-            {% endif %}
-        </div>
             <table>
                 <thead>
                     <tr>
@@ -51,8 +51,8 @@
                     {% for router in routers %}
                     <tr>
                         <td id="status-{{ router.id }}" class="status-cell" data-id="{{ router.id }}">
-                            <span style="color: #666">
-                                <i class="fa-solid fa-circle-notch fa-spin"></i> Verificando...
+                            <span class="status-badge status-checking">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i> Verificando
                             </span>
                         </td>
                         <td>{{ router.local }}</td>
@@ -74,50 +74,54 @@
                         {% endif %}
                     </tr>
                     {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding: 20px;">Nenhum roteador cadastrado.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
     <div id="routerModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2>Adicionar Novo Roteador</h2>
-            <p style="color: #666; margin-bottom: 20px; font-size: 0.9rem;">Preencha os dados abaixo para registrar um equipamento.</p>
+            <div class="modal-header">
+                <h2>Adicionar Novo Roteador</h2>
+            </div>
             
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                <script>
-                    document.addEventListener("DOMContentLoaded", function() {
-                    openModal();
-                    });
-                </script>
-                    {% for message in messages %}
-                        <p style="color: #d63031; padding: 5px; margin-bottom: 1rem; font-size: 0.9rem;">
-                            {{message}}
-                        </p>
-                    {% endfor %}
-                {% endif %}
-                {% endwith %}
             <form action="{{ url_for('add_router') }}" method="POST">
-                <div class = "form-group">
-                    <label for="local">Local</label>
-                    <input type="text" id="local" name="local" placeholder="EX: Sala de administração" required>
-                </div>
+                <div class="modal-body">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                        <div style="background: #FEF2F2; color: #991B1B; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #FECACA;">
+                            {% for message in messages %}
+                                {{ message }}<br>
+                            {% endfor %}
+                        </div>
+                        <script>document.addEventListener("DOMContentLoaded", function() { openModal(); });</script>
+                        {% endif %}
+                    {% endwith %}
 
-                <div class="form-group">
-                    <label for="model">Modelo</label>
-                    <input type="text" id="model" name="model" placeholder="Ex: RUT200" required>
-                </div>
+                    <div class="form-group">
+                        <label for="local">Local</label>
+                        <input type="text" id="local" name="local" placeholder="Ex: Sala de administração" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="serial">Número de Série</label>
-                    <input type="text" id="serial" name="serial" placeholder="Ex: 1107001749" required>
-                </div>
+                    <div class="form-group">
+                        <label for="model">Modelo</label>
+                        <input type="text" id="model" name="model" placeholder="Ex: RUT200" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="link">Link de Acesso</label>
-                    <input type="url" id="link" name="link" placeholder="EX: ntc.veronline.center:8787" required>
+                    <div class="form-group">
+                        <label for="serial">Número de Série</label>
+                        <input type="text" id="serial" name="serial" placeholder="Ex: 1107001749" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="link">Link de Acesso</label>
+                        <input type="url" id="link" name="link" placeholder="Ex: http://ntc.veronline.center:8787" required>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -130,22 +134,29 @@
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeDeleteModal()">&times;</span>
-            <h2>Confirmar Exclusão</h2>
-            <p>Tem certeza que deseja remover este roteador? Esta ação não pode ser desfeita.</p>
+            <div class="modal-header">
+                <h2>Confirmar Exclusão</h2>
+            </div>
             
             <form action="{{ url_for('delete') }}" method="POST">
-                <input type="hidden" id="delete_router_id" name="id" value="">
+                <div class="modal-body">
+                    <p class="delete-text">Tem certeza que deseja remover este roteador? Esta ação não pode ser desfeita e removerá o equipamento do painel.</p>
+                    <input type="hidden" id="delete_router_id" name="id" value="">
+                </div>
                 
                 <div class="modal-footer">
-                    <button type="submit" class="btn-confirm btn-delete-confirm">Confirmar</button>
                     <button type="button" class="btn-confirm btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                    <button type="submit" class="btn-confirm btn-delete-confirm">Confirmar Exclusão</button>
                 </div>
             </form>
         </div>
     </div>
     
     <script>
+        // Lógica dos Modais
         const modal = document.getElementById("routerModal");
+        const deleteModal = document.getElementById("deleteModal");
+        const deleteInput = document.getElementById("delete_router_id");
 
         function openModal() {
             modal.style.display = "block";
@@ -154,9 +165,6 @@
         function closeModal() {
             modal.style.display = "none";
         }
-
-        const deleteModal = document.getElementById("deleteModal");
-        const deleteInput = document.getElementById("delete_router_id");
 
         function openDeleteModal(id) {
             deleteInput.value = id;
@@ -167,32 +175,48 @@
             deleteModal.style.display = "none";
         }
 
+        // Fechar modal se clicar fora dele
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+            if (event.target == deleteModal) {
+                deleteModal.style.display = "none";
+            }
+        }
+
+        // Lógica de verificação de status automática
         document.addEventListener("DOMContentLoaded", function() {
-        const statusCells = document.querySelectorAll('.status-cell');
+            const statusCells = document.querySelectorAll('.status-cell');
 
-        statusCells.forEach(cell => {
-            const routerId = cell.getAttribute('data-id');
-            
-            fetch(`/check_status/${routerId}`)
-                .then(response => response.json())
-                .then(data => {
-                    let html = '';
-                    if (data.status === 'online') {
-                        html = '<span style="color: #28a745; font-weight: bold;"><i class="fa-solid fa-wifi"></i> ONLINE</span>';
-                    } else if (data.status === 'warning') {
-                        html = '<span style="color: #ffc107; font-weight: bold;"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA</span>';
-                    } else {
-                        html = '<span style="color: #dc3545; font-weight: bold;"><i class="fa-solid fa-power-off"></i> OFFLINE</span>';
-                    }
-                    cell.innerHTML = html;
-                })
-                .catch(error => {
-                    console.error('Erro ao verificar status:', error);
-                    cell.innerHTML = '<span style="color: #dc3545; font-weight: bold;">Erro</span>';
-                });
+            statusCells.forEach(cell => {
+                const routerId = cell.getAttribute('data-id');
+                
+                fetch(`/check_status/${routerId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let html = '';
+                        if (data.status === 'online') {
+                            html = `<span class="status-badge status-online">
+                                        <i class="fa-solid fa-circle"></i> ONLINE
+                                    </span>`;
+                        } else if (data.status === 'warning') {
+                            html = `<span class="status-badge status-warning">
+                                        <i class="fa-solid fa-circle"></i> ALERTA
+                                    </span>`;
+                        } else {
+                            html = `<span class="status-badge status-offline">
+                                        <i class="fa-solid fa-circle"></i> OFFLINE
+                                    </span>`;
+                        }
+                        cell.innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao verificar status:', error);
+                        cell.innerHTML = `<span class="status-badge status-offline" style="background:#fcecec; color:#dc3545;">Erro</span>`;
+                    });
+            });
         });
-    });
-
     </script>
 </body>
 </html>
