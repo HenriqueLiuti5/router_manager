@@ -91,13 +91,15 @@
                 <table>
                     <thead>
                         <tr>
-                            <th width="15%">Status</th>
-                            <th width="20%">Local</th>
-                            <th width="15%">Modelo</th>
-                            <th width="20%">Serial</th>
-                            <th width="15%">Acesso</th>
+                            <th>Status</th>
+                            <th>Local</th>
+                            <th>Modelo</th>
+                            <th>Serial</th>
+                            <th>Acesso</th>
+                            <th>Dispositivo 1</th>
+                            <th>Dispositivo 2</th>
                             {% if current_user.is_admin %}
-                            <th width="15%" style="text-align: right;">Ações</th>
+                            <th>Ações</th>
                             {% endif %}
                         </tr>
                     </thead>
@@ -114,13 +116,31 @@
                             <td class="font-mono">{{ router.serial }}</td>
                             <td>
                                 <a href="{{router.link}}" target="_blank" class="link-external">
-                                    Abrir <i class="fa-solid fa-up-right-from-square"></i>
+                                    Router <i class="fa-solid fa-up-right-from-square"></i>
                                 </a>
+                            </td>
+                            <td>
+                                {% if router.link1 %}
+                                <a href="{{router.link1}}" target="_blank" class="link-external">
+                                    Dispositivo 1 <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if router.link2 %}
+                                <a href="{{router.link2}}" target="_blank" class="link-external">
+                                    Dispositivo 2 <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
                             </td>
                             
                             {% if current_user.is_admin %}
-                            <td style="text-align: right;">
-                                <div class="action-buttons">
+                            <td>
+                                <div class="action-buttons" style="justify-content: center;">
                                     <button class="btn-icon delete" onclick="openDeleteModal('{{router.id}}')" title="Excluir">
                                         <i class="fa-regular fa-trash-can"></i>
                                     </button>
@@ -130,7 +150,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6">
+                            <td colspan="8">
                                 <div class="empty-state">
                                     <div class="empty-icon">
                                         <i class="fa-solid fa-router"></i>
@@ -160,7 +180,7 @@
                         {% if messages %}
                         <div class="flash-wrapper">
                             {% for message in messages %}
-                                <div class="alert-box">{{ message }}</div>
+                                <div class="alert">{{ message }}</div>
                             {% endfor %}
                         </div>
                         <script>document.addEventListener("DOMContentLoaded", function() { openModal(); });</script>
@@ -184,8 +204,18 @@
                     </div>
 
                     <div class="input-group">
-                        <label>Link de Acesso (IP/URL)</label>
+                        <label>Link de Acesso</label>
                         <input type="url" name="link" placeholder="http://..." required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Link do Dispositivo 1</label>
+                        <input type="url" name="link1" placeholder="http://...">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Link do Dispositivo 2</label>
+                        <input type="url" name="link2" placeholder="http://..."">
                     </div>
                 </div>
 

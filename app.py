@@ -32,7 +32,9 @@ class Router(db.Model):
     local = db.Column(db.String(100), nullable=False)
     model = db.Column(db.String(100), nullable=False)
     serial = db.Column(db.String(100), nullable=False, unique=True)
-    link = db.Column(db.String(100), default=False, nullable=False)
+    link = db.Column(db.String(100), nullable=False)
+    link1 = db.Column(db.String(100))
+    link2 = db.Column(db.String(100))
 
 
 @login_manager.user_loader
@@ -117,6 +119,8 @@ def add_router():
     model = request.form.get('model')
     serial = request.form.get('serial')
     link = request.form.get('link')
+    link1 = request.form.get('link1')
+    link2 = request.form.get('link2')
 
     router = Router.query.filter_by(serial=serial).first()
     if router:
@@ -124,7 +128,7 @@ def add_router():
         return redirect(url_for('dashboard'))
     
     if local and model and serial and link:
-        router = Router(local=local, model=model, serial=serial, link=link)
+        router = Router(local=local, model=model, serial=serial, link=link, link1=link1, link2=link2)
         db.session.add(router)
         db.session.commit()
         return redirect(url_for('dashboard'))
