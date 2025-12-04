@@ -7,39 +7,72 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='assets/router-manager.png') }}" alt="Router Manager logo" style="max-width: 200px; margin-bottom: 3px;">
-        <br>
-        <h1>Crie sua conta</h1>
+    <div class="split-screen">
         
-        <div id="flash-messages">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+        <div class="left-panel">
+            <div class="left-panel-content">
+                <img src="{{ url_for('static', filename='assets/router-manager.png') }}" 
+                     alt="Router Manager" 
+                     style="width: 100px; margin-bottom: 20px; filter: brightness(0) invert(1);">
+                <h2>Junte-se a nós</h2>
+                <p>Crie sua conta administrativa para começar a adicionar e monitorar seus equipamentos.</p>
+            </div>
         </div>
 
-        <div id="js-messages"></div>
+        <div class="right-panel">
+            <div class="login-container">
 
-        <form action="{{ url_for('register') }}" method="POST">
-            <input type="text" id="username" name="username" placeholder="Nome de usuário" required>
-            <input type="email" id="email" name="email" placeholder="E-mail" required>
-            
-            <div class="password-container">
-                <input type="password" id="password" name="password" placeholder="Senha" required>
-                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirmar senha" required>
+                <div class="brand-logo-mobile">
+                    <img src="{{ url_for('static', filename='assets/router-manager.png') }}" alt="Router Manager" width="60">
+                </div>
+
+                <div class="login-header">
+                    <h1>Crie sua conta</h1>
+                    <p>Preencha os dados abaixo para se registrar.</p>
+                </div>
+
+                <div id="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <div id="js-messages"></div>
+
+                <form action="{{ url_for('register') }}" method="POST">
+                    <div class="input-group">
+                        <label for="username">Nome de usuário</label>
+                        <input type="text" id="username" name="username" placeholder="Ex: Admin" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" placeholder="Mínimo 4 caracteres" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="confirm-password">Confirmar Senha</label>
+                        <input type="password" id="confirm-password" name="confirm-password" placeholder="Repita a senha" required>
+                    </div>
+
+                    <button type="submit">Registrar Conta</button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Já possui uma conta? <a href="{{ url_for('login')}}">Fazer login</a></p>
+                </div>
             </div>
-
-            <button type="submit">Registrar</button>
-        </form>
-
-        <div class="form-link">
-            <p>Já possui uma conta? <a href="{{ url_for('login')}}">Faça login aqui!</a></p>
         </div>
     </div>
 
@@ -48,10 +81,7 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
             
-            const flashDiv = document.getElementById('flash-messages');
             const jsDiv = document.getElementById('js-messages');
-            
-            if (flashDiv) flashDiv.innerHTML = '';
             jsDiv.innerHTML = '';
 
             if (password !== confirmPassword) {
@@ -60,6 +90,7 @@
                 const div = document.createElement('div');
                 div.textContent = "As senhas não coincidem!";
                 div.className = "alert alert-error";
+                div.style.marginBottom = "15px";
                 
                 jsDiv.appendChild(div);
             }

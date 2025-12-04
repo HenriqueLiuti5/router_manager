@@ -5,56 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Router Manager</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='assets/router-manager.png') }}" alt="Router Manager logo" style="max-width: 200px; margin-bottom: 3px;">
-        <br>
-        <h1>Bem-vindo de volta</h1>
+    <div class="split-screen">
         
-        <div id="flash-messages">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+        <div class="left-panel">
+            <div class="left-panel-content">
+                <img src="{{ url_for('static', filename='assets/VERONLINE-simbolo-colorido-arrendodado.png') }}" 
+                     alt="Veronline" 
+                     style="width: 80px; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));">
+                
+                <h2>Bem-vindo de volta!</h2>
+                <p>Acesse o painel para gerenciar seus roteadores e monitorar a rede com eficiência.</p>
+            </div>
         </div>
 
-        <form action="{{ url_for('login') }}" method="POST">
-            <input type="email" id="email" name="email" placeholder="E-mail" required>
+        <div class="right-panel">
+            <div class="login-container">
+                
+                <div class="brand-logo-mobile">
+                    <img src="{{ url_for('static', filename='assets/router-manager.png') }}" alt="Router Manager" width="60">
+                </div>
 
-            <div class="password-container">
-                <input type="password" id="password" name="password" placeholder="Senha" required>
-                <span id="togglePassword" class="eye-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </span>
+                <div class="login-header">
+                    <h1>Acesse sua conta</h1>
+                    <p>Entre com suas credenciais para continuar.</p>
+                </div>
+
+                <div id="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <form action="{{ url_for('login') }}" method="POST">
+                    <div class="input-group">
+                        <label for="email">E-mail corporativo</label>
+                        <input type="email" id="email" name="email" placeholder="nome@exemplo.com" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Senha</label>
+                        <div style="position: relative;">
+                            <input type="password" id="password" name="password" placeholder="exemplo@123" required style="padding-right: 40px;">
+                            <span id="togglePassword" class="eye-icon">
+                                <i class="fa-regular fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="submit">Entrar no Sistema</button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Não tem uma conta? <a href="{{ url_for('register')}}">Criar nova conta</a></p>
+                </div>
             </div>
-
-            <button type="submit">Conectar</button>
-        </form>
-
-        <div class="form-link">
-            <p>Não tem uma conta? <a href="{{ url_for('register')}}">Registre-se aqui</a></p>
         </div>
     </div>
 
     <script>
         const togglePassword = document.querySelector('#togglePassword');
         const passwordInput = document.querySelector('#password');
+        const icon = togglePassword.querySelector('i');
 
         togglePassword.addEventListener('click', function () {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-            this.style.color = type === 'text' ? '#0066FF' : '#9CA3AF';
-        });
-
-        document.querySelector('form').addEventListener('submit', function() {
-            const flashDiv = document.getElementById('flash-messages');
-            if (flashDiv) flashDiv.innerHTML = '';
+            
+            if (type === 'text') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                this.style.color = '#0066FF';
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                this.style.color = '#9CA3AF';
+            }
         });
     </script>
 </body>

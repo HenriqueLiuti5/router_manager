@@ -3,191 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Roteadores</title>
+    <title>Dashboard - Router Manager</title>
     <link rel="stylesheet" href="{{url_for('static', filename='css/style-dashboard.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        
-        <div class="top-bar">
-            <div class="brand">
-                <h1>Painel de Gerenciamento</h1>
-                <p>Sistema de Controle de Roteadores</p>
-            </div>
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-wifi"></i>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active"><a href="#"><i class="fa-solid fa-chart-pie"></i></a></li>
+            <li><a href="#" style="opacity: 0.5; cursor: not-allowed;"><i class="fa-solid fa-gear"></i></a></li>
+        </ul>
+        <div class="sidebar-footer">
             <form action="{{ url_for('logout') }}" method="POST">
-                <button type="submit" class="btn-logout">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                <button type="submit" class="btn-sidebar-logout" title="Sair">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 </button>
             </form>
+            <span class="app-version">v1.0.0</span>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="user-welcome">
+                <h1>Painel de Controle</h1>
+                <p>Visão geral da sua rede</p>
+            </div>
+            <div class="user-profile">
+                <div class="avatar-circle">
+                    {{ current_user.username[0] | upper }}
+                </div>
+                <div class="user-info">
+                    <span class="name">{{ current_user.username }}</span>
+                    <span class="role">{{ 'Administrador' if current_user.is_admin else 'Visualizador' }}</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon total">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+                <div class="kpi-data">
+                    <span class="kpi-value">{{ routers|length }}</span>
+                    <span class="kpi-label">Total de Dispositivos</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon online">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="kpi-data">
+                    <span class="kpi-value" id="count-online">0</span>
+                    <span class="kpi-label">Roteadores Online</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon issue">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="kpi-data">
+                    <span class="kpi-value" id="count-issue">0</span>
+                    <span class="kpi-label">Roteadores offline</span>
+                </div>
+            </div>
         </div>
 
-        <div class="table-card">
-            <div class="card-header">
-                <div class="header-content">
-                    <h2>Roteadores Cadastrados</h2>
-                    <span>Gerencie todos os roteadores da rede</span>
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <h2>Dispositivos Monitorados</h2>
                 </div>
                 {% if current_user.is_admin %}
-                <button class="btn-add" onclick="openModal()">
-                    <i class="fa-solid fa-plus"></i> Novo Roteador
+                <button class="btn-primary" onclick="openModal()">
+                    <i class="fa-solid fa-plus"></i> Novo Dispositivo
                 </button>
                 {% endif %}
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Status</th>
-                        <th>Local</th>
-                        <th>Modelo</th>
-                        <th>Serial</th>
-                        <th>Acesso Remoto</th>
-                        {% if current_user.is_admin %}
-                        <th>Ações</th>
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for router in routers %}
-                    <tr>
-                        <td id="status-{{ router.id }}" class="status-cell" data-id="{{ router.id }}">
-                            <span class="status-badge status-checking">
-                                <i class="fa-solid fa-circle-notch fa-spin"></i> Verificando
-                            </span>
-                        </td>
-                        <td>{{ router.local }}</td>
-                        <td>{{ router.model }}</td>
-                        <td>{{ router.serial }}</td>
-                        <td><a href="{{router.link}}" target="_blank" class="action-link">Acessar</a></td>
-                        
-                        {% if current_user.is_admin %}
-                        <td>
-                            <div class="action-group">
-                                <a href="#" class="btn-icon btn-edit" title="Editar">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                                <a href="#" class="btn-icon btn-delete" title="Excluir" onclick="openDeleteModal('{{router.id}}')">
-                                    <i class="fa-solid fa-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                        {% endif %}
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" style="text-align:center; padding: 20px;">Nenhum roteador cadastrado.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <div id="routerModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">Status</th>
+                            <th width="20%">Local</th>
+                            <th width="15%">Modelo</th>
+                            <th width="20%">Serial</th>
+                            <th width="15%">Acesso</th>
+                            {% if current_user.is_admin %}
+                            <th width="15%" style="text-align: right;">Ações</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for router in routers %}
+                        <tr>
+                            <td class="status-cell" data-id="{{ router.id }}">
+                                <span class="status-badge status-loading">
+                                    <i class="fa-solid fa-spinner fa-spin"></i> Verificando
+                                </span>
+                            </td>
+                            <td class="fw-500">{{ router.local }}</td>
+                            <td class="text-muted">{{ router.model }}</td>
+                            <td class="font-mono">{{ router.serial }}</td>
+                            <td>
+                                <a href="{{router.link}}" target="_blank" class="link-external">
+                                    Abrir <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                            </td>
+                            
+                            {% if current_user.is_admin %}
+                            <td style="text-align: right;">
+                                <div class="action-buttons">
+                                    <button class="btn-icon delete" onclick="openDeleteModal('{{router.id}}')" title="Excluir">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fa-solid fa-router"></i>
+                                    </div>
+                                    <h3>Nenhum dispositivo encontrado</h3>
+                                    <p>Cadastre um novo roteador para começar o monitoramento.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="routerModal" class="modal-overlay">
+        <div class="modal-box">
             <div class="modal-header">
-                <h2>Adicionar Novo Roteador</h2>
+                <h3>Novo Dispositivo</h3>
+                <button class="close-modal" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
             <form action="{{ url_for('add_router') }}" method="POST">
                 <div class="modal-body">
                     {% with messages = get_flashed_messages() %}
                         {% if messages %}
-                        <div style="background: #FEF2F2; color: #991B1B; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #FECACA;">
+                        <div class="flash-wrapper">
                             {% for message in messages %}
-                                {{ message }}<br>
+                                <div class="alert-box">{{ message }}</div>
                             {% endfor %}
                         </div>
                         <script>document.addEventListener("DOMContentLoaded", function() { openModal(); });</script>
                         {% endif %}
                     {% endwith %}
 
-                    <div class="form-group">
-                        <label for="local">Local</label>
-                        <input type="text" id="local" name="local" placeholder="Ex: Sala de administração" required>
+                    <div class="input-group">
+                        <label>Localização</label>
+                        <input type="text" name="local" placeholder="Ex: Matriz - Sala TI" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="model">Modelo</label>
-                        <input type="text" id="model" name="model" placeholder="Ex: RUT200" required>
+                    <div class="row-2">
+                        <div class="input-group">
+                            <label>Modelo</label>
+                            <input type="text" name="model" placeholder="Ex: RUT200" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Serial Number</label>
+                            <input type="text" name="serial" placeholder="Ex: 1107..." required>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="serial">Número de Série</label>
-                        <input type="text" id="serial" name="serial" placeholder="Ex: 1107001749" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="link">Link de Acesso</label>
-                        <input type="url" id="link" name="link" placeholder="Ex: http://ntc.veronline.center:8787" required>
+                    <div class="input-group">
+                        <label>Link de Acesso (IP/URL)</label>
+                        <input type="url" name="link" placeholder="http://..." required>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="submit" class="btn-confirm">Salvar Roteador</button>
+                    <button type="button" class="btn-text" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Equipamento</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeDeleteModal()">&times;</span>
-            <div class="modal-header">
-                <h2>Confirmar Exclusão</h2>
-            </div>
-            
-            <form action="{{ url_for('delete') }}" method="POST">
-                <div class="modal-body">
-                    <p class="delete-text">Tem certeza que deseja remover este roteador? Esta ação não pode ser desfeita e removerá o equipamento do painel.</p>
-                    <input type="hidden" id="delete_router_id" name="id" value="">
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-box modal-small">
+            <div class="modal-content-center">
+                <div class="icon-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
+                <h3>Excluir dispositivo?</h3>
+                <p>Essa ação removerá permanentemente o roteador do painel de monitoramento.</p>
                 
-                <div class="modal-footer">
-                    <button type="button" class="btn-confirm btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
-                    <button type="submit" class="btn-confirm btn-delete-confirm">Confirmar Exclusão</button>
-                </div>
-            </form>
+                <form action="{{ url_for('delete') }}" method="POST">
+                    <input type="hidden" id="delete_router_id" name="id" value="">
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+                        <button type="submit" class="btn-danger">Sim, excluir</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     
     <script>
-        // Lógica dos Modais
-        const modal = document.getElementById("routerModal");
+        const routerModal = document.getElementById("routerModal");
         const deleteModal = document.getElementById("deleteModal");
         const deleteInput = document.getElementById("delete_router_id");
 
-        function openModal() {
-            modal.style.display = "block";
-        }
-
-        function closeModal() {
-            modal.style.display = "none";
-        }
-
+        function openModal() { routerModal.classList.add('active'); }
+        function closeModal() { routerModal.classList.remove('active'); }
+        
         function openDeleteModal(id) {
             deleteInput.value = id;
-            deleteModal.style.display = "block";
+            deleteModal.classList.add('active');
+        }
+        function closeDeleteModal() { deleteModal.classList.remove('active'); }
+
+        window.onclick = function(e) {
+            if (e.target == routerModal) closeModal();
+            if (e.target == deleteModal) closeDeleteModal();
         }
 
-        function closeDeleteModal() {
-            deleteModal.style.display = "none";
-        }
-
-        // Fechar modal se clicar fora dele
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-            if (event.target == deleteModal) {
-                deleteModal.style.display = "none";
-            }
-        }
-
-        // Lógica de verificação de status automática
         document.addEventListener("DOMContentLoaded", function() {
             const statusCells = document.querySelectorAll('.status-cell');
+            let onlineCount = 0;
+            let issueCount = 0;
+            const totalRouters = statusCells.length;
+
+            const elOnline = document.getElementById('count-online');
+            const elIssue = document.getElementById('count-issue');
 
             statusCells.forEach(cell => {
                 const routerId = cell.getAttribute('data-id');
@@ -197,23 +253,31 @@
                     .then(data => {
                         let html = '';
                         if (data.status === 'online') {
+                            onlineCount++;
                             html = `<span class="status-badge status-online">
-                                        <i class="fa-solid fa-circle"></i> ONLINE
+                                        <span class="dot"></span> Online
                                     </span>`;
                         } else if (data.status === 'warning') {
+                            issueCount++;
                             html = `<span class="status-badge status-warning">
-                                        <i class="fa-solid fa-circle"></i> ALERTA
+                                        <span class="dot"></span> Alerta
                                     </span>`;
                         } else {
+                            issueCount++;
                             html = `<span class="status-badge status-offline">
-                                        <i class="fa-solid fa-circle"></i> OFFLINE
+                                        <span class="dot"></span> Offline
                                     </span>`;
                         }
                         cell.innerHTML = html;
+                        
+                        if(elOnline) elOnline.textContent = onlineCount;
+                        if(elIssue) elIssue.textContent = issueCount;
                     })
                     .catch(error => {
-                        console.error('Erro ao verificar status:', error);
-                        cell.innerHTML = `<span class="status-badge status-offline" style="background:#fcecec; color:#dc3545;">Erro</span>`;
+                        console.error('Erro:', error);
+                        cell.innerHTML = `<span class="status-badge status-offline">Erro</span>`;
+                        issueCount++;
+                        if(elIssue) elIssue.textContent = issueCount;
                     });
             });
         });
