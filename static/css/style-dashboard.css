@@ -287,3 +287,35 @@ tbody td {
 .btn-confirm:hover {
     background-color: #218838;
 }
+
+#deleteModal .modal-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    gap: 15px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+#deleteModal .modal-content {
+    text-align: center;
+}
+
+#deleteModal h2 {
+    color: var(--danger-red);
+}
+
+.btn-cancel {
+    background-color: #ccc !important;
+    color: #333 !important;
+}
+.btn-cancel:hover {
+    background-color: #b3b3b3 !important;
+}
+
+.btn-delete-confirm {
+    background-color: var(--danger-red) !important;
+}
+.btn-delete-confirm:hover {
+    background-color: #bd2130 !important;
+}

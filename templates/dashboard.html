@@ -16,7 +16,9 @@
                 <p>Sistema de Controle de Roteadores</p>
             </div>
             <form action="{{ url_for('logout') }}" method="POST">
-                <button type="submit" class="btn-logout">Sair ➔</button>
+                <button type="submit" class="btn-logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                </button>
             </form>
         </div>
 
@@ -26,45 +28,52 @@
                     <h2>Roteadores Cadastrados</h2>
                     <span>Gerencie todos os roteadores da rede</span>
             </div>
+            {% if current_user.is_admin %}
             <button class="btn-add" onclick="openModal()">
                 <i class="fa-solid fa-plus"></i> Novo Roteador
             </button>
+            {% endif %}
         </div>
-
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>Status</th>
+                        <th>Local</th>
                         <th>Modelo</th>
                         <th>Serial</th>
                         <th>Acesso Remoto</th>
+                        {% if current_user.is_admin %}
                         <th>Ações</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for router in routers %}
                     <tr>
-                        <td>{{router.id}}</td>
+                        <td id="status-{{ router.id }}" class="status-cell" data-id="{{ router.id }}">
+                            <span style="color: #666">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i> Verificando...
+                            </span>
+                        </td>
+                        <td>{{ router.local }}</td>
                         <td>{{ router.model }}</td>
                         <td>{{ router.serial }}</td>
                         <td><a href="{{router.link}}" target="_blank" class="action-link">Acessar</a></td>
+                        
+                        {% if current_user.is_admin %}
                         <td>
                             <div class="action-group">
-        
                                 <a href="#" class="btn-icon btn-edit" title="Editar">
-                                            <i class="fa-solid fa-pen"></i>
+                                    <i class="fa-solid fa-pen"></i>
                                 </a>
-        
-                                <a href="#" class="btn-icon btn-delete" title="Excluir">
+                                <a href="#" class="btn-icon btn-delete" title="Excluir" onclick="openDeleteModal('{{router.id}}')">
                                     <i class="fa-solid fa-trash"></i>
                                 </a>
                             </div>
                         </td>
+                        {% endif %}
                     </tr>
                     {% else %}
-                    <tr>
-                        <td style="text-align:center; padding: 20px;">Nenhum roteador registrado</td>
-                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -91,6 +100,11 @@
                 {% endif %}
                 {% endwith %}
             <form action="{{ url_for('add_router') }}" method="POST">
+                <div class = "form-group">
+                    <label for="local">Local</label>
+                    <input type="text" id="local" name="local" placeholder="EX: Sala de administração" required>
+                </div>
+
                 <div class="form-group">
                     <label for="model">Modelo</label>
                     <input type="text" id="model" name="model" placeholder="Ex: RUT200" required>
@@ -112,6 +126,24 @@
             </form>
         </div>
     </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeDeleteModal()">&times;</span>
+            <h2>Confirmar Exclusão</h2>
+            <p>Tem certeza que deseja remover este roteador? Esta ação não pode ser desfeita.</p>
+            
+            <form action="{{ url_for('delete') }}" method="POST">
+                <input type="hidden" id="delete_router_id" name="id" value="">
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn-confirm btn-delete-confirm">Confirmar</button>
+                    <button type="button" class="btn-confirm btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
         const modal = document.getElementById("routerModal");
 
@@ -123,11 +155,44 @@
             modal.style.display = "none";
         }
 
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                closeModal();
-            }
+        const deleteModal = document.getElementById("deleteModal");
+        const deleteInput = document.getElementById("delete_router_id");
+
+        function openDeleteModal(id) {
+            deleteInput.value = id;
+            deleteModal.style.display = "block";
         }
+
+        function closeDeleteModal() {
+            deleteModal.style.display = "none";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+        const statusCells = document.querySelectorAll('.status-cell');
+
+        statusCells.forEach(cell => {
+            const routerId = cell.getAttribute('data-id');
+            
+            fetch(`/check_status/${routerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+                    if (data.status === 'online') {
+                        html = '<span style="color: #28a745; font-weight: bold;"><i class="fa-solid fa-wifi"></i> ONLINE</span>';
+                    } else if (data.status === 'warning') {
+                        html = '<span style="color: #ffc107; font-weight: bold;"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA</span>';
+                    } else {
+                        html = '<span style="color: #dc3545; font-weight: bold;"><i class="fa-solid fa-power-off"></i> OFFLINE</span>';
+                    }
+                    cell.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Erro ao verificar status:', error);
+                    cell.innerHTML = '<span style="color: #dc3545; font-weight: bold;">Erro</span>';
+                });
+        });
+    });
+
     </script>
 </body>
 </html>

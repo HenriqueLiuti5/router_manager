@@ -3,8 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
-import os
-import re
+import os, re, requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,12 +25,14 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
 class Router(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    local = db.Column(db.String(100), nullable=False)
     model = db.Column(db.String(100), nullable=False)
     serial = db.Column(db.String(100), nullable=False, unique=True)
-    link = db.Column(db.String(100), nullable=False)
+    link = db.Column(db.String(100), default=False, nullable=False)
 
 
 @login_manager.user_loader
@@ -108,6 +109,11 @@ def dashboard():
 @app.route('/add_router', methods = ['GET', 'POST'])
 @login_required
 def add_router():
+    if not current_user.is_admin:
+        flash('Acesso negado. Apenas administradores podem adicionar roteadores.', 'error')
+        return redirect(url_for('dashboard'))
+
+    local = request.form.get('local')
     model = request.form.get('model')
     serial = request.form.get('serial')
     link = request.form.get('link')
@@ -117,11 +123,41 @@ def add_router():
         flash('Roteador já cadastrado.', 'error')
         return redirect(url_for('dashboard'))
     
-    if model and serial and link:
-        router = Router(model=model, serial=serial, link=link)
+    if local and model and serial and link:
+        router = Router(local=local, model=model, serial=serial, link=link)
         db.session.add(router)
         db.session.commit()
         return redirect(url_for('dashboard'))
+    
+@app.route('/delete', methods = ['POST'])
+@login_required
+def delete():
+    if not current_user.is_admin:
+        flash('Acesso negado. Apenas administradores podem adicionar roteadores.', 'error')
+        return redirect(url_for('dashboard'))
+
+    router_id = request.form.get('id')
+    Router.query.filter_by(id=router_id).delete()
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
+@app.route('/check_status/<int:router_id>')
+@login_required
+def check_status(router_id):
+    router = Router.query.get_or_404(router_id)
+    url = router.link
+    if not url.startswith(('http://', 'https://')):
+        url = 'http://' + url
+
+    try:
+        response = requests.get(url, timeout=3)
+    
+        if response.status_code == 200 or response.status_code == 401:
+            return jsonify({'status': 'online'})
+        else:
+            return jsonify({'status': 'warning'})
+    except requests.RequestException:
+        return jsonify({'status': 'offline'})
 
 if __name__ == '__main__':
     app.run(debug=True)
