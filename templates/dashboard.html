@@ -12,15 +12,27 @@
     <nav class="sidebar">
         <div class="sidebar-brand">
             <i class="fa-solid fa-wifi"></i>
+            <span class="link-text">Router Manager</span>
         </div>
         <ul class="sidebar-menu">
-            <li class="active"><a href="#"><i class="fa-solid fa-chart-pie"></i></a></li>
-            <li><a href="#" style="opacity: 0.5; cursor: not-allowed;"><i class="fa-solid fa-gear"></i></a></li>
+            <li class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span class="link-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="{{ 'active' if request.endpoint == 'settings' else '' }}">
+                <a href="{{ url_for('settings') }}">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="link-text">Configurações</span>
+                </a>
+            </li>
         </ul>
         <div class="sidebar-footer">
             <form action="{{ url_for('logout') }}" method="POST">
                 <button type="submit" class="btn-sidebar-logout" title="Sair">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="link-text">Sair</span>
                 </button>
             </form>
             <span class="app-version">v1.0.0</span>

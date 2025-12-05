@@ -163,5 +163,36 @@ def check_status(router_id):
     except requests.RequestException:
         return jsonify({'status': 'offline'})
 
+@app.route('/settings', methods = ['GET'])
+@login_required
+def settings():
+    return render_template('settings.html')
+
+@app.route('/new_password', methods = ['POST'])
+@login_required
+def new_password():
+
+    password = request.form.get('password')
+    confirm_password = request.form.get('confirm_password')
+
+    if not password or len(password) < 4:
+        flash('A senha deve ter pelo menos 4 caracteres.', 'error')
+        return redirect(url_for('settings'))
+
+    if password != confirm_password:
+        flash('As senhas não coincidem!', 'error')
+        return redirect(url_for('settings'))
+
+    try:
+        current_user.password = generate_password_hash(password)
+        db.session.commit()
+        flash ('A sua senha foi alterada com sucesso!', 'success')
+        return redirect(url_for('settings'))
+    
+    except:
+        db.session.rollback()
+        flash ('Erro ao salvar nova senha.', 'error')
+        return redirect(url_for('settings'))
+
 if __name__ == '__main__':
     app.run(debug=True)
