@@ -137,7 +137,7 @@ def add_router():
 @login_required
 def delete():
     if not current_user.is_admin:
-        flash('Acesso negado. Apenas administradores podem adicionar roteadores.', 'error')
+        flash('Acesso negado. Apenas administradores podem deletar roteadores.', 'error')
         return redirect(url_for('dashboard'))
 
     router_id = request.form.get('id')
@@ -193,6 +193,64 @@ def new_password():
         db.session.rollback()
         flash ('Erro ao salvar nova senha.', 'error')
         return redirect(url_for('settings'))
+    
+@app.route('/dashboard_admin', methods = ['GET'])
+@login_required
+def dashboard_admin():
+    if not current_user.is_admin:
+        return redirect(url_for('dashboard'))
+
+    users = User.query.all()
+    return render_template('admin_dashboard.html', users = users)
+
+@app.route('/add_user', methods = ['POST'])
+@login_required
+def add_user():
+    if not current_user.is_admin:
+        return redirect(url_for('dashboard'))
+
+    username = request.form.get('username')
+    password = request.form.get('password')
+    email = request.form.get('email')
+    is_admin = request.form.get('is_admin') == '1'
+
+    if len(password) < 4:
+        flash('A senha deve ter pelo menos 4 caracteres.', 'error')
+        return redirect(url_for('dashboard_admin'))
+
+    user = User.query.filter_by(email = email).first()
+    if user:
+        flash('Usuário já cadastrado.', 'error')
+        return redirect(url_for('dashboard_admin'))
+    
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        flash('Endereço de email inválido.', 'error')
+        return redirect(url_for('dashboard_admin'))
+
+    if username and email and password:
+        user = User(username = username, email = email, password = password, is_admin = is_admin)
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('dashboard_admin'))
+    
+    flash('Preencha todos os campos obrigatórios', 'error')
+    return redirect(url_for('dashboard_admin'))
+
+@app.route('/delete_user', methods = ['POST'])
+@login_required
+def delete_user():
+    if not current_user.is_admin:
+        flash('Acesso negado. Apenas administradores podem deletar usuários.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    user_id = request.form.get('id')
+
+    if str(current_user.id) == str(user_id):
+        return redirect(url_for('dashboard_admin'))
+
+    User.query.filter_by(id=user_id).delete()
+    db.session.commit()
+    return redirect(url_for('dashboard_admin'))
 
 if __name__ == '__main__':
     app.run(debug=True)

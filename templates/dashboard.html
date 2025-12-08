@@ -26,7 +26,15 @@
                     <i class="fa-solid fa-gear"></i>
                     <span class="link-text">Configurações</span>
                 </a>
+                {% if current_user.is_admin %}
             </li>
+            <li class="{{ 'active' if request.endpoint == 'dashboard_admin' else '' }}">
+                <a href="{{ url_for('dashboard_admin') }}">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span class="link-text">Gerenciar usuários</span>
+                </a>
+            </li>
+                {% endif %}
         </ul>
         <div class="sidebar-footer">
             <form action="{{ url_for('logout') }}" method="POST">
