@@ -44,12 +44,10 @@
             {% endif %}
         </ul>
         <div class="sidebar-footer">
-            <form action="">
                 <button type="button" class="btn-dark-mode-toggle" title="dark mode">
                     <i class="fa-solid fa-moon"></i>
                     <span class="link-text">Modo escuro</span>
                 </button>
-            </form>
             <form action="{{ url_for('logout') }}" method="POST">
                 <button type="submit" class="btn-sidebar-logout" title="Sair">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>

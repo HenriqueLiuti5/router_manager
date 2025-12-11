@@ -328,7 +328,5 @@ def edit_user():
         flash('Usuário não encontrado', 'error')
     return redirect(url_for('dashboard_admin'))
 
-    
-
 if __name__ == '__main__':
     app.run(debug=True)
