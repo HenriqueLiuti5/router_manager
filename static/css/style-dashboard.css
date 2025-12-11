@@ -528,4 +528,4 @@ body.dark-mode .status-warning .dot { background: #f09e23; }
 body.dark-mode .status-offline { background: #842A3B; color: #FEF3E2; }
 body.dark-mode .status-offline .dot { background: #e45f5b; }
 
-body.dark-mode .status-loading { color: var(--text-muted); background: #F1F5F9; }
+body.dark-mode .status-loading { color: #F1F5F9; background: var(--text-muted)F5F9; }
