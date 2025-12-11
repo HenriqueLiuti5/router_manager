@@ -90,6 +90,16 @@
                             <td class="font-mono">{{ user.is_admin}}</td>
                             <td>
                                 <div class="action-buttons" style="justify-content: center;">
+                                    <button class="btn-icon edit" 
+                                        onclick="openEditModal(this)"
+                                        data-id="{{ user.id }}"
+                                        data-username="{{ user.username }}"
+                                        data-email="{{ user.email }}"
+                                        data-password="{{ user.password }}"
+                                        data-is_admin="{{ '1' if user.is_admin else '0' }}"
+                                        title="Editar">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
                                     <button class="btn-icon delete" onclick="openDeleteModal('{{user.id}}')" title="Excluir">
                                         <i class="fa-regular fa-trash-can"></i>
                                     </button>
@@ -169,6 +179,50 @@
         </div>
     </div>
 
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Editar Usuário</h3>
+                <button class="close-modal" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form action="{{ url_for('edit_user') }}" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+
+                    <div class="input-group">
+                        <label>Nome</label>
+                        <input type="text" id="edit_username" name="username" required>
+                    </div>
+
+                    <div class="row-2">
+                        <div class="input-group">
+                            <label>Email</label>
+                            <input type="email" id="edit_email" name="email" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Senha</label>
+                            <input type="password" id="edit_password" name="password" placeholder="Digite uma senha" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit_role">Tipo de Acesso</label>
+                        <select id="edit_role" name="is_admin" required>
+                            <option value="0">Visualizador (Padrão)</option>
+                            <option value="1">Administrador</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-text" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="deleteModal" class="modal-overlay">
         <div class="modal-box modal-small">
             <div class="modal-content-center">
@@ -191,7 +245,15 @@
 
     <script>
     const userModal = document.getElementById("userModal");
+    const editModal = document.getElementById("editModal");
     const deleteModal = document.getElementById("deleteModal");
+    
+    const editInputId = document.getElementById("edit_id");
+    const editInputUsername = document.getElementById("edit_username");
+    const editInputEmail = document.getElementById("edit_email");
+    const editInputPassword = document.getElementById("edit_password");
+    const editInputRole = document.getElementById("edit_role");
+
     const deleteInput = document.getElementById("delete_user_id");
     const deleteConfirmBtn = document.getElementById("deleteConfirmBtn");
 
@@ -203,6 +265,22 @@
 
     function closeModal() {
         userModal.classList.remove('active');
+    }
+
+    function openEditModal(button) {
+        const data = button.dataset;
+
+        editInputId.value = data.id;
+        editInputUsername.value = data.username;
+        editInputEmail.value = data.email;
+        editInputPassword.value = data.password;
+        editInputRole.value = data.is_admin;
+
+        editModal.classList.add('active');
+    }
+
+    function closeEditModal() {
+        editModal.classList.remove('active');
     }
 
     function openDeleteModal(id) {
@@ -228,6 +306,7 @@
 
     window.onclick = function(e) {
         if (e.target === userModal) closeModal();
+        if (e.target === editModal) closeEditModal();
         if (e.target === deleteModal) closeDeleteModal();
     }
     </script>

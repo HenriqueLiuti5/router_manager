@@ -26,15 +26,15 @@
                     <i class="fa-solid fa-gear"></i>
                     <span class="link-text">Configurações</span>
                 </a>
-                {% if current_user.is_admin %}
             </li>
+            {% if current_user.is_admin %}
             <li class="{{ 'active' if request.endpoint == 'dashboard_admin' else '' }}">
                 <a href="{{ url_for('dashboard_admin') }}">
                     <i class="fa-solid fa-user-shield"></i>
                     <span class="link-text">Gerenciar usuários</span>
                 </a>
             </li>
-                {% endif %}
+            {% endif %}
         </ul>
         <div class="sidebar-footer">
             <form action="{{ url_for('logout') }}" method="POST">
@@ -48,6 +48,19 @@
     </nav>
 
     <main class="main-content">
+        <div id="global-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category != 'add_error' %}
+                            <div class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}" style="margin-bottom: 20px;">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
         <header class="top-bar">
             <div class="user-welcome">
                 <h1>Painel de Controle</h1>
@@ -162,6 +175,18 @@
                             {% if current_user.is_admin %}
                             <td>
                                 <div class="action-buttons" style="justify-content: center;">
+                                    <button class="btn-icon edit" 
+                                        onclick="openEditModal(this)"
+                                        data-id="{{ router.id }}"
+                                        data-local="{{ router.local }}"
+                                        data-model="{{ router.model }}"
+                                        data-serial="{{ router.serial }}"
+                                        data-link="{{ router.link }}"
+                                        data-link1="{{ router.link1 or '' }}" 
+                                        data-link2="{{ router.link2 or '' }}"
+                                        title="Editar">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
                                     <button class="btn-icon delete" onclick="openDeleteModal('{{router.id}}')" title="Excluir">
                                         <i class="fa-regular fa-trash-can"></i>
                                     </button>
@@ -197,11 +222,11 @@
             
             <form action="{{ url_for('add_router') }}" method="POST">
                 <div class="modal-body">
-                    {% with messages = get_flashed_messages() %}
+                    {% with messages = get_flashed_messages(category_filter=['add_error']) %}
                         {% if messages %}
                         <div class="flash-wrapper">
                             {% for message in messages %}
-                                <div class="alert">{{ message }}</div>
+                                <div class="alert alert-error">{{ message }}</div>
                             {% endfor %}
                         </div>
                         <script>document.addEventListener("DOMContentLoaded", function() { openModal(); });</script>
@@ -236,7 +261,7 @@
 
                     <div class="input-group">
                         <label>Link do Dispositivo 2</label>
-                        <input type="url" name="link2" placeholder="http://..."">
+                        <input type="url" name="link2" placeholder="http://...">
                     </div>
                 </div>
 
@@ -267,14 +292,92 @@
             </div>
         </div>
     </div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Editar Dispositivo</h3>
+                <button class="close-modal" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form action="{{ url_for('edit_router') }}" method="POST">
+            <div class="modal-body">
+                <input type="hidden" id="edit_id" name="id">
+
+                <div class="input-group">
+                    <label>Localização</label>
+                    <input type="text" id="edit_local" name="local" required>
+                </div>
+
+                <div class="row-2">
+                    <div class="input-group">
+                        <label>Modelo</label>
+                        <input type="text" id="edit_model" name="model" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Serial Number</label>
+                        <input type="text" id="edit_serial" name="serial" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Link de Acesso</label>
+                    <input type="url" id="edit_link" name="link" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Link do Dispositivo 1</label>
+                    <input type="url" id="edit_link1" name="link1">
+                </div>
+
+                <div class="input-group">
+                    <label>Link do Dispositivo 2</label>
+                    <input type="url" id="edit_link2" name="link2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                    <button type="button" class="btn-text" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Equipamento</button>
+            </div>
+            </form>
+        </div>
+    </div>
     
     <script>
         const routerModal = document.getElementById("routerModal");
+        const editModal = document.getElementById("editModal");
         const deleteModal = document.getElementById("deleteModal");
+        
+        const editInputId = document.getElementById("edit_id");
+        const editInputLocal = document.getElementById("edit_local");
+        const editInputModel = document.getElementById("edit_model");
+        const editInputSerial = document.getElementById("edit_serial");
+        const editInputLink = document.getElementById("edit_link");
+        const editInputLink1 = document.getElementById("edit_link1");
+        const editInputLink2 = document.getElementById("edit_link2");
+        
         const deleteInput = document.getElementById("delete_router_id");
 
         function openModal() { routerModal.classList.add('active'); }
         function closeModal() { routerModal.classList.remove('active'); }
+
+        function openEditModal(button) {
+            const data = button.dataset;
+
+            editInputId.value = data.id;
+            editInputLocal.value = data.local;
+            editInputModel.value = data.model;
+            editInputSerial.value = data.serial;
+            editInputLink.value = data.link;
+            editInputLink1.value = data.link1;
+            editInputLink2.value = data.link2;
+
+            editModal.classList.add('active');
+        }
+
+        function closeEditModal() {
+            editModal.classList.remove('active');
+        }
         
         function openDeleteModal(id) {
             deleteInput.value = id;
@@ -283,8 +386,9 @@
         function closeDeleteModal() { deleteModal.classList.remove('active'); }
 
         window.onclick = function(e) {
-            if (e.target == routerModal) closeModal();
-            if (e.target == deleteModal) closeDeleteModal();
+            if (e.target === routerModal) closeModal();
+            if (e.target === deleteModal) closeDeleteModal();
+            if (e.target === editModal) closeEditModal();
         }
 
         document.addEventListener("DOMContentLoaded", function() {

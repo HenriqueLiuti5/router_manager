@@ -292,13 +292,14 @@ tbody td {
 }
 .link-external:hover { text-decoration: underline; }
 
-.action-buttons { display: flex; justify-content: flex-end; gap: 8px; }
+.action-buttons { display: flex; justify-content: flex-end; }
 .btn-icon {
     width: 32px; height: 32px; border-radius: 6px; border: 1px solid transparent;
     background: transparent; color: var(--text-muted); cursor: pointer;
     display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 }
 .btn-icon.delete:hover { background: var(--danger-bg); color: var(--danger); }
+.btn-icon.edit:hover { background: #ebf3ff; color: #1159c7; }
 
 .empty-state {
     padding: 40px; text-align: center; color: var(--text-muted);

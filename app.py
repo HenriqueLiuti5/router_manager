@@ -124,7 +124,7 @@ def add_router():
 
     router = Router.query.filter_by(serial=serial).first()
     if router:
-        flash('Roteador já cadastrado.', 'error')
+        flash('Roteador já cadastrado.', 'add_error')
         return redirect(url_for('dashboard'))
     
     if local and model and serial and link:
@@ -144,6 +144,47 @@ def delete():
     Router.query.filter_by(id=router_id).delete()
     db.session.commit()
     return redirect(url_for('dashboard'))
+
+@app.route('/edit_router', methods = ['POST'])
+def edit_router():
+    if not current_user.is_admin:
+        flash('Acesso negado. Apenas administradores podem editar roteadores.', 'error')
+        return redirect(url_for('dashboard'))
+
+    local = request.form.get('local')
+    model = request.form.get('model')
+    serial = request.form.get('serial')
+    link = request.form.get('link')
+    link1 = request.form.get('link1')
+    link2 = request.form.get('link2')
+
+    router_id = request.form.get('id')
+
+    existing_router = Router.query.filter_by(serial=serial).first()
+    if existing_router and str(existing_router.id) != str(router_id):
+        flash('Erro: Este Serial Number já está cadastrado em outro dispositivo.', 'error')
+        return redirect(url_for('dashboard'))
+
+    router = Router.query.filter_by(id=router_id).first()
+    
+    if router:
+        if local and model and serial and link:
+            router.local = local
+            router.model = model
+            router.serial = serial
+            router.link = link
+            router.link1 = link1
+            router.link2 = link2
+
+            db.session.commit()
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Preencha todos os campos obrigatórios', 'error')
+    else:
+        flash('Roteador não encontrado', 'error')
+    return redirect(url_for('dashboard'))
+
+
 
 @app.route('/check_status/<int:router_id>')
 @login_required
@@ -228,7 +269,7 @@ def add_user():
         return redirect(url_for('dashboard_admin'))
 
     if username and email and password:
-        user = User(username = username, email = email, password = password, is_admin = is_admin)
+        user = User(username = username, email = email, password=generate_password_hash(password), is_admin = is_admin)
         db.session.add(user)
         db.session.commit()
         return redirect(url_for('dashboard_admin'))
@@ -251,6 +292,43 @@ def delete_user():
     User.query.filter_by(id=user_id).delete()
     db.session.commit()
     return redirect(url_for('dashboard_admin'))
+
+@app.route('/edit_user', methods = ['POST'])
+@login_required
+def edit_user():
+    if not current_user.is_admin:
+        flash('Acesso negado. Apenas administradores podem editar usuários.', 'error')
+        return redirect(url_for('dashboard_admin'))
+
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    is_admin = request.form.get('is_admin') == '1'
+
+    user_id = request.form.get('id')
+
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user and str(existing_user.id) != str(user_id):
+        flash('Esse email já está cadastrado em outro usuário', 'error')
+        return redirect (url_for('dashboard_admin'))
+    
+    user = User.query.filter_by(id=user_id).first()
+    if user:
+        if username and email and password and is_admin is not None:
+            user.username = username
+            user.password = generate_password_hash(password)
+            user.email = email
+            user.is_admin = is_admin
+
+            db.session.commit()
+            return redirect(url_for('dashboard_admin'))
+        else:
+            flash('Preencha todos os campos obrigatórios', 'error')
+    else:
+        flash('Usuário não encontrado', 'error')
+    return redirect(url_for('dashboard_admin'))
+
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
