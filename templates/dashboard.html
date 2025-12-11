@@ -7,8 +7,15 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/router-manager.png') }}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/style-dashboard.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+</script>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
     <nav class="sidebar">
         <div class="sidebar-brand">
             <i class="fa-solid fa-wifi"></i>
@@ -37,6 +44,12 @@
             {% endif %}
         </ul>
         <div class="sidebar-footer">
+            <form action="">
+                <button type="button" class="btn-dark-mode-toggle" title="dark mode">
+                    <i class="fa-solid fa-moon"></i>
+                    <span class="link-text">Modo escuro</span>
+                </button>
+            </form>
             <form action="{{ url_for('logout') }}" method="POST">
                 <button type="submit" class="btn-sidebar-logout" title="Sair">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
@@ -436,6 +449,36 @@
                     });
             });
         });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const darkModeBtn = document.querySelector('.btn-dark-mode-toggle');
+        
+        if (!darkModeBtn) return;
+
+        const darkModeIcon = darkModeBtn.querySelector('i');
+        const darkModeText = darkModeBtn.querySelector('.link-text');
+
+        function updateIcons(isDark) {
+            if (isDark) {
+                darkModeIcon.className = 'fa-solid fa-sun';
+                darkModeText.textContent = 'Modo claro';
+            } else {
+                darkModeIcon.className = 'fa-solid fa-moon';
+                darkModeText.textContent = 'Modo escuro';
+            }
+        }
+
+        const isInitiallyDark = document.body.classList.contains('dark-mode');
+        updateIcons(isInitiallyDark);
+
+        darkModeBtn.addEventListener('click', function() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            updateIcons(isDark);
+        });
+    });
     </script>
 </body>
 </html>
