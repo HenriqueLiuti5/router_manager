@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Router Manager</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/router-manager.png') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/style-dashboard.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+</script>
+</head>
+<body>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-wifi"></i>
+            <span class="link-text">Router Manager</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span class="link-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="{{ 'active' if request.endpoint == 'settings' else '' }}">
+                <a href="{{ url_for('settings') }}">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="link-text">Configurações</span>
+                </a>
+            </li>
+            {% if current_user.is_admin %}
+            <li class="{{ 'active' if request.endpoint == 'dashboard_admin' else '' }}">
+                <a href="{{ url_for('dashboard_admin') }}">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span class="link-text">Gerenciar usuários</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        <div class="sidebar-footer">
+                <button type="button" class="btn-dark-mode-toggle" title="dark mode">
+                    <i class="fa-solid fa-moon"></i>
+                    <span class="link-text">Modo escuro</span>
+                </button>
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="btn-sidebar-logout" title="Sair">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="link-text">Sair</span>
+                </button>
+            </form>
+            <span class="app-version">v1.0.0</span>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div id="global-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category != 'add_error' %}
+                            <div class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}" style="margin-bottom: 20px;">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        <header class="top-bar">
+            <div class="user-welcome">
+                <h1>Painel de Controle</h1>
+                <p>Visão geral da sua rede</p>
+            </div>
+            <div class="user-profile">
+                <div class="avatar-circle">
+                    {{ current_user.username[0] | upper }}
+                </div>
+                <div class="user-info">
+                    <span class="name">{{ current_user.username }}</span>
+                    <span class="role">{{ 'Administrador' if current_user.is_admin else 'Visualizador' }}</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon total">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+                <div class="kpi-data">
+                    <span class="kpi-value">{{ routers|length }}</span>
+                    <span class="kpi-label">Total de Dispositivos</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon online">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="kpi-data">
+                    <span class="kpi-value" id="count-online">0</span>
+                    <span class="kpi-label">Roteadores Online</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon issue">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="kpi-data">
+                    <span class="kpi-value" id="count-issue">0</span>
+                    <span class="kpi-label">Roteadores offline</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <h2>Dispositivos Monitorados</h2>
+                </div>
+                {% if current_user.is_admin %}
+                <button class="btn-primary" onclick="openModal()">
+                    <i class="fa-solid fa-plus"></i> Novo Dispositivo
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Local</th>
+                            <th>Modelo</th>
+                            <th>Serial</th>
+                            <th>Acesso</th>
+                            <th>Dispositivo 1</th>
+                            <th>Dispositivo 2</th>
+                            {% if current_user.is_admin %}
+                            <th>Ações</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for router in routers %}
+                        <tr>
+                            <td class="status-cell" data-id="{{ router.id }}">
+                                <span class="status-badge status-loading">
+                                    <i class="fa-solid fa-spinner fa-spin"></i> Verificando
+                                </span>
+                            </td>
+                            <td class="fw-500">{{ router.local }}</td>
+                            <td class="text-muted">{{ router.model }}</td>
+                            <td class="font-mono">{{ router.serial }}</td>
+                            <td>
+                                <a href="{{router.link}}" target="_blank" class="link-external">
+                                    Router <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                            </td>
+                            <td>
+                                {% if router.link1 %}
+                                <a href="{{router.link1}}" target="_blank" class="link-external">
+                                    Dispositivo 1 <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if router.link2 %}
+                                <a href="{{router.link2}}" target="_blank" class="link-external">
+                                    Dispositivo 2 <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            
+                            {% if current_user.is_admin %}
+                            <td>
+                                <div class="action-buttons" style="justify-content: center;">
+                                    <button class="btn-icon edit" 
+                                        onclick="openEditModal(this)"
+                                        data-id="{{ router.id }}"
+                                        data-local="{{ router.local }}"
+                                        data-model="{{ router.model }}"
+                                        data-serial="{{ router.serial }}"
+                                        data-link="{{ router.link }}"
+                                        data-link1="{{ router.link1 or '' }}" 
+                                        data-link2="{{ router.link2 or '' }}"
+                                        title="Editar">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button class="btn-icon delete" onclick="openDeleteModal('{{router.id}}')" title="Excluir">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fa-solid fa-router"></i>
+                                    </div>
+                                    <h3>Nenhum dispositivo encontrado</h3>
+                                    <p>Cadastre um novo roteador para começar o monitoramento.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="routerModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Novo Dispositivo</h3>
+                <button class="close-modal" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form action="{{ url_for('add_router') }}" method="POST">
+                <div class="modal-body">
+                    {% with messages = get_flashed_messages(category_filter=['add_error']) %}
+                        {% if messages %}
+                        <div class="flash-wrapper">
+                            {% for message in messages %}
+                                <div class="alert alert-error">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                        <script>document.addEventListener("DOMContentLoaded", function() { openModal(); });</script>
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="input-group">
+                        <label>Localização</label>
+                        <input type="text" name="local" placeholder="Ex: Matriz - Sala TI" required>
+                    </div>
+
+                    <div class="row-2">
+                        <div class="input-group">
+                            <label>Modelo</label>
+                            <input type="text" name="model" placeholder="Ex: RUT200" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Serial Number</label>
+                            <input type="text" name="serial" placeholder="Ex: 1107..." required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Link de Acesso</label>
+                        <input type="url" name="link" placeholder="http://..." required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Link do Dispositivo 1</label>
+                        <input type="url" name="link1" placeholder="http://...">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Link do Dispositivo 2</label>
+                        <input type="url" name="link2" placeholder="http://...">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-text" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Equipamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-box modal-small">
+            <div class="modal-content-center">
+                <div class="icon-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3>Excluir dispositivo?</h3>
+                <p>Essa ação removerá permanentemente o roteador do painel de monitoramento.</p>
+                
+                <form action="{{ url_for('delete') }}" method="POST">
+                    <input type="hidden" id="delete_router_id" name="id" value="">
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+                        <button type="submit" class="btn-danger">Sim, excluir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Editar Dispositivo</h3>
+                <button class="close-modal" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form action="{{ url_for('edit_router') }}" method="POST">
+            <div class="modal-body">
+                <input type="hidden" id="edit_id" name="id">
+
+                <div class="input-group">
+                    <label>Localização</label>
+                    <input type="text" id="edit_local" name="local" required>
+                </div>
+
+                <div class="row-2">
+                    <div class="input-group">
+                        <label>Modelo</label>
+                        <input type="text" id="edit_model" name="model" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Serial Number</label>
+                        <input type="text" id="edit_serial" name="serial" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Link de Acesso</label>
+                    <input type="url" id="edit_link" name="link" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Link do Dispositivo 1</label>
+                    <input type="url" id="edit_link1" name="link1">
+                </div>
+
+                <div class="input-group">
+                    <label>Link do Dispositivo 2</label>
+                    <input type="url" id="edit_link2" name="link2">
+                </div>
+            </div>
+            <div class="modal-footer">
+                    <button type="button" class="btn-text" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Equipamento</button>
+            </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const routerModal = document.getElementById("routerModal");
+        const editModal = document.getElementById("editModal");
+        const deleteModal = document.getElementById("deleteModal");
+        
+        const editInputId = document.getElementById("edit_id");
+        const editInputLocal = document.getElementById("edit_local");
+        const editInputModel = document.getElementById("edit_model");
+        const editInputSerial = document.getElementById("edit_serial");
+        const editInputLink = document.getElementById("edit_link");
+        const editInputLink1 = document.getElementById("edit_link1");
+        const editInputLink2 = document.getElementById("edit_link2");
+        
+        const deleteInput = document.getElementById("delete_router_id");
+
+        function openModal() { routerModal.classList.add('active'); }
+        function closeModal() { routerModal.classList.remove('active'); }
+
+        function openEditModal(button) {
+            const data = button.dataset;
+
+            editInputId.value = data.id;
+            editInputLocal.value = data.local;
+            editInputModel.value = data.model;
+            editInputSerial.value = data.serial;
+            editInputLink.value = data.link;
+            editInputLink1.value = data.link1;
+            editInputLink2.value = data.link2;
+
+            editModal.classList.add('active');
+        }
+
+        function closeEditModal() {
+            editModal.classList.remove('active');
+        }
+        
+        function openDeleteModal(id) {
+            deleteInput.value = id;
+            deleteModal.classList.add('active');
+        }
+        function closeDeleteModal() { deleteModal.classList.remove('active'); }
+
+        window.onclick = function(e) {
+            if (e.target === routerModal) closeModal();
+            if (e.target === deleteModal) closeDeleteModal();
+            if (e.target === editModal) closeEditModal();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const statusCells = document.querySelectorAll('.status-cell');
+            let onlineCount = 0;
+            let issueCount = 0;
+            const totalRouters = statusCells.length;
+
+            const elOnline = document.getElementById('count-online');
+            const elIssue = document.getElementById('count-issue');
+
+            statusCells.forEach(cell => {
+                const routerId = cell.getAttribute('data-id');
+                
+                fetch(`/check_status/${routerId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let html = '';
+                        if (data.status === 'online') {
+                            onlineCount++;
+                            html = `<span class="status-badge status-online">
+                                        <span class="dot"></span> Online
+                                    </span>`;
+                        } else if (data.status === 'warning') {
+                            issueCount++;
+                            html = `<span class="status-badge status-warning">
+                                        <span class="dot"></span> Alerta
+                                    </span>`;
+                        } else {
+                            issueCount++;
+                            html = `<span class="status-badge status-offline">
+                                        <span class="dot"></span> Offline
+                                    </span>`;
+                        }
+                        cell.innerHTML = html;
+                        
+                        if(elOnline) elOnline.textContent = onlineCount;
+                        if(elIssue) elIssue.textContent = issueCount;
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        cell.innerHTML = `<span class="status-badge status-offline">Erro</span>`;
+                        issueCount++;
+                        if(elIssue) elIssue.textContent = issueCount;
+                    });
+            });
+        });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const darkModeBtn = document.querySelector('.btn-dark-mode-toggle');
+        
+        if (!darkModeBtn) return;
+
+        const darkModeIcon = darkModeBtn.querySelector('i');
+        const darkModeText = darkModeBtn.querySelector('.link-text');
+
+        function updateIcons(isDark) {
+            if (isDark) {
+                darkModeIcon.className = 'fa-solid fa-sun';
+                darkModeText.textContent = 'Modo claro';
+            } else {
+                darkModeIcon.className = 'fa-solid fa-moon';
+                darkModeText.textContent = 'Modo escuro';
+            }
+        }
+
+        const isInitiallyDark = document.body.classList.contains('dark-mode');
+        updateIcons(isInitiallyDark);
+
+        darkModeBtn.addEventListener('click', function() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            updateIcons(isDark);
+        });
+    });
+    </script>
+</body>
+</html>
