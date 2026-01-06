@@ -546,6 +546,9 @@ body.dark-mode .status-offline .dot { background: #e45f5b; }
 
 body.dark-mode .status-loading { color: #F1F5F9; background: var(--text-muted); }
 
+body.dark-mode .btn-icon.delete:hover { background: transparent; color: var(--danger); }
+body.dark-mode .btn-icon.edit:hover { background: transparent; color: #ff950b; }
+
 body.dark-mode .btn-sidebar-logout:hover { 
     color: var(--danger); 
     background: #334155;
