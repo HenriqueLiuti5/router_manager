@@ -204,7 +204,7 @@ def check_status(router_id):
     except requests.RequestException:
         return jsonify({'status': 'offline'})
 
-@app.route('/settings', methods = ['GET'])
+@app.route('/settings', methods = ['GET']) 
 @login_required
 def settings():
     return render_template('settings.html')

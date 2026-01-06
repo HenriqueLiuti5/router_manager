@@ -92,7 +92,7 @@ body {
     background: #DBEAFE;
 }
 
-.sidebar-menu i, .sidebar-brand i, .btn-sidebar-logout i, .btn-dark-mode-toggle i {
+.sidebar-menu i, .sidebar-brand i, .btn-sidebar-logout i, .btn-dark-mode-toggle i, .btn-support i {
     min-width: 30px;
     text-align: center;
     display: flex;
@@ -139,6 +139,17 @@ body {
     white-space: nowrap;
 }
 
+.btn-support {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.2rem; color: var(--text-muted);
+    height: 48px; width: 100%;
+    display: flex; align-items: center;
+    padding-left: 14px;
+    border-radius: 12px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
 .btn-sidebar-logout:hover { 
     color: var(--danger); 
     background: var(--danger-bg);
@@ -156,6 +167,11 @@ body {
 }
 
 .btn-dark-mode-toggle:hover { 
+    background: #EFF6FF;
+    color: var(--primary);
+}
+
+.btn-support:hover { 
     background: #EFF6FF;
     color: var(--primary);
 }
@@ -533,4 +549,123 @@ body.dark-mode .status-loading { color: #F1F5F9; background: var(--text-muted); 
 body.dark-mode .btn-sidebar-logout:hover { 
     color: var(--danger); 
     background: #334155;
+}
+
+body.dark-mode .btn-support:hover {
+    background-color: #334155;
+    color: var(--text-main);
+}
+
+/* Media Query para Celulares e Tablets */
+@media (max-width: 768px) {
+    /* Remove a margem lateral do conteúdo principal */
+    .main-content {
+        margin-left: 0;
+        padding: 20px 16px 100px 16px; /* Espaço extra no fundo para a barra de navegação */
+    }
+
+    /* Transforma a Sidebar em Barra de Navegação Inferior Fixa */
+    .sidebar {
+        width: 100% !important;
+        height: 70px;
+        bottom: 0;
+        top: auto;
+        left: 0;
+        flex-direction: row;
+        padding: 0 10px;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1001;
+    }
+
+    /* Desabilita efeitos de hover da sidebar no mobile */
+    .sidebar:hover {
+        width: 100% !important;
+        padding-left: 10px;
+    }
+
+    /* Esconde elementos que ocupam muito espaço horizontal */
+    .sidebar-brand, .link-text, .app-version {
+        display: none;
+    }
+
+    .sidebar-menu {
+        display: flex;
+        width: auto;
+        margin-bottom: 0;
+        gap: 15px;
+    }
+
+    .sidebar-menu li {
+        margin-bottom: 0;
+        width: auto;
+    }
+
+    .sidebar-footer {
+        flex-direction: row;
+        margin-top: 0;
+        width: auto;
+        gap: 10px;
+    }
+
+    .sidebar-footer form {
+        width: auto;
+    }
+
+    /* Estiliza os itens como ícones circulares */
+    .sidebar-menu a, .btn-sidebar-logout, .btn-dark-mode-toggle, .btn-support {
+        width: 45px;
+        height: 45px;
+        padding-left: 0;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    /* Ajustes de Layout do Conteúdo */
+    .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .user-profile {
+        width: 100%;
+        padding: 8px;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr; /* Cards empilhados verticalmente */
+    }
+
+    /* Ajuste da Tabela para Mobile */
+    .table-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .table-header .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Esconde colunas menos críticas para evitar rolagem horizontal excessiva */
+    thead th:nth-child(3), thead th:nth-child(4), thead th:nth-child(6), thead th:nth-child(7),
+    tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(6), tbody td:nth-child(7) {
+        display: none;
+    }
+
+    /* Ajustes dos Modais */
+    .modal-box {
+        width: 95%;
+        margin: 0 10px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .row-2 {
+        grid-template-columns: 1fr; /* Inputs um embaixo do outro */
+    }
 }
