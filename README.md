@@ -1,79 +1,108 @@
-# Router Manager 📡
+<div align="center">
 
-Sistema web para gerenciamento e monitoramento de roteadores e dispositivos IoT. Desenvolvido para facilitar o controle de ativos de rede, permitindo a verificação de status em tempo real e gestão administrativa de usuários.
+# 🌐 Router Manager
 
-## 🚀 Funcionalidades
+![Badge Development](http://img.shields.io/static/v1?label=STATUS&message=IN%20DEVELOPMENT&color=BLUE&style=for-the-badge)
+<br>
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Networking](https://img.shields.io/badge/networking-router?style=for-the-badge&logo=cisco&logoColor=white&color=black)
+![Automation](https://img.shields.io/badge/automation-script?style=for-the-badge&logo=gnu-bash&logoColor=white&color=success)
 
-* **Dashboard Interativo:** Visão geral com KPIs de dispositivos totais, online e offline.
-* **Monitoramento em Tempo Real:** Verificação automática de status (Online/Offline/Alerta) através de requisições HTTP aos dispositivos.
-* **Gestão de Dispositivos:** Adicionar, editar e excluir roteadores com informações de local, modelo, serial e links de acesso.
-* **Controle de Acesso:** Sistema de login seguro com níveis de permissão (Administrador e Visualizador).
-* **Gestão de Usuários:** Painel administrativo para cadastro e controle de usuários do sistema.
-* **Interface Responsiva:** Design adaptável para desktop e mobile, incluindo suporte a **Modo Escuro**.
+<p align="center">
+  <b>Advanced tool for router automation, hotspot management, and network monitoring.</b><br>
+  Focus on efficiency, stability, and ease of configuration.
+</p>
 
-## 🛠️ Tecnologias Utilizadas
+</div>
 
-* **Python 3**
-* **Flask** (Framework Web)
-* **SQLAlchemy** (ORM / Banco de Dados SQLite)
-* **Flask-Login** (Autenticação)
-* **HTML5 / CSS3 / JavaScript**
-* **FontAwesome** (Ícones)
+---
 
-## ⚙️ Pré-requisitos
+## 💻 About the Project
 
-Antes de começar, certifique-se de ter o **Python 3.x** e o **Git** instalados em sua máquina.
+**Router Manager** is a robust solution designed to automate the configuration and maintenance of network devices (such as Orbe, Teltonika, and Mikrotik).
 
-## 📦 Instalação e Configuração
+Manual router management is error-prone and time-consuming. This project solves that by providing a streamlined interface/CLI to handle tasks like **Hotspot setup**, **remote reboots**, and **status monitoring**, ensuring high availability for your network infrastructure.
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone [https://github.com/HenriqueLiuti5/router_manager.git](https://github.com/HenriqueLiuti5/router_manager.git)
-    cd router_manager
-    ```
+---
 
-2.  **Crie e ative um ambiente virtual (recomendado):**
-    ```bash
-    # Windows
-    python -m venv .venv
-    .venv\Scripts\activate
+## ✨ Features
 
-    # Linux/Mac
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
+- **🔥 Hotspot Management**: Automate the creation and maintenance of captive portals.
+- **🔄 Auto-Provisioning**: Scripts to reset and configure routers from scratch.
+- **📊 Live Monitoring**: Check device health, CPU usage, and connected clients.
+- **⚡ Remote Actions**: Reboot or update firmware across multiple devices instantly.
+- **🛡️ Secure Connection**: Uses SSH/Telnet with secure credential handling.
 
-3.  **Instale as dependências:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+---
 
-4.  **Configuração de Variáveis de Ambiente:**
-    Crie um arquivo `.env` na raiz do projeto seguindo o modelo abaixo (ou renomeie o existente):
+## 🛠 Tech Stack
 
-    ```env
-    SECRET_KEY=sua_chave_secreta_aqui
-    DATABASE_URL=sqlite:///database.db
-    ```
+The project was built using:
 
-5.  **Inicialize o Banco de Dados:**
-    O sistema utiliza SQLite. Certifique-se de que a pasta `instance` existe ou será criada automaticamente pelo SQLAlchemy na primeira execução.
+- **Core**: [Python 3.10+](https://www.python.org/)
+- **Networking**: `Netmiko` / `Paramiko` (SSH Automation).
+- **Interface**: CLI (Command Line) or Web Dashboard.
+- **Environment**: Virtualenv for dependency management.
 
-## ▶️ Como Executar
+---
 
-Para iniciar o servidor de desenvolvimento local:
+## 🚀 How to Run
+
+### Prerequisites
+Before you begin, ensure you have met the following requirements:
+- [Python 3.10+](https://www.python.org/downloads/)
+- [Git](https://git-scm.com)
+- Network access to the target routers.
+
+### 🎲 Installation
 
 ```bash
-python app.py
+# 1. Clone this repository
+$ git clone https://github.com/HenriqueLiuti5/router_manager.git
+
+# 2. Go into the repository
+$ cd router_manager
+
+# 3. Create a virtual environment
+$ python -m venv venv
+
+# 4. Activate the virtual environment
+# On Windows:
+$ venv\Scripts\activate
+# On Linux/Mac:
+$ source venv/bin/activate
+
+# 5. Install dependencies
+$ pip install -r requirements.txt
+
+# 6. Configure your environment variables (.env)
+$ cp .env.example .env
+# (Edit the .env file with your router credentials)
+
+# 7. Run the application
+$ python main.py
 ```
 
-O sistema estará acessível em: http://127.0.0.1:5000
+---
 
-## 🔐 Acesso Padrão
-Caso esteja utilizando o banco de dados pré-configurado, utilize as credenciais de administrador criadas ou registre uma nova conta na tela de login.
+## 🤝 Contribution
 
-## 🤝 Contribuição
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
+Contributions are welcome!
 
-## 📝 Licença
-Este projeto está sob a licença MIT.
+1. Fork the project.
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+---
+
+<div align="center">
+  <sub>Made by Henrique Liuti</sub>
+</div>
